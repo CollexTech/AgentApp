@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCases } from "../services/api";
+import { getCases } from "../service/api";
 import {
   Table,
   TableBody,

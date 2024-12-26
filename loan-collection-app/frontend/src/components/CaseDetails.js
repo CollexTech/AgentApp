@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getCaseDetails, getTrails, postTrail, getPaymentLink } from "../services/api";
+import { getCaseDetails, getTrails, postTrail, getPaymentLink } from "../service/api";
 import {
   Typography,
   Box,
