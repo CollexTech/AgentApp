@@ -1,10 +1,27 @@
-import axios from "axios";
+import axios from 'axios';
 import { getAuthToken } from "./auth";
 
+const BACKEND_HOST = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
+
 const instance = axios.create({
-  baseURL: "/api",
+  baseURL: `${BACKEND_HOST}/agent/api/v1`,
 });
 
+// Add token to headers for all requests
+instance.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export default instance;
 // Add token to headers for all requests
 instance.interceptors.request.use((config) => {
   const token = getAuthToken();

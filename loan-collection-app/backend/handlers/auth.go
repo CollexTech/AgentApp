@@ -1,54 +1,80 @@
 package handlers
 
 import (
+	"backend/constants"
+	"backend/models"
+	"backend/services"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-// Dummy user for demonstration
-var fakeAgent = map[string]string{
-	"username": "agent1",
-	"password": "password123",
+type LoginRequest struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
-// LoginHandler authenticates an agent and returns a simple token
 func LoginHandler(c *gin.Context) {
-	var credentials struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
+	val, _ := c.Get("env")
+	env := val.(*models.Env)
+	var credentials LoginRequest
 	if err := c.ShouldBindJSON(&credentials); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid credentials format"})
 		return
 	}
 
-	if credentials.Username == fakeAgent["username"] && credentials.Password == fakeAgent["password"] {
-		// In real app, use JWT
-		token := "SAMPLE_TOKEN"
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Logged in successfully",
-			"token":   token,
-		})
+	if err := env.Validator.Struct(credentials); err != nil {
+		env.Logger.Error(err.Error())
+		response := constants.RESPONSE_BAD_REQUEST
+		response["error"] = err.Error()
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
-	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+	token, err := services.Login(env, credentials.Username, credentials.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Logged in successfully",
+		"token":   token,
+	})
 }
 
-// Simple Middleware to check token
-func AuthMiddleware(c *gin.Context) {
-	authHeader := c.GetHeader("Authorization")
-	if !strings.HasPrefix(authHeader, "Bearer ") {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No or invalid token"})
+type CreateUserRequest struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required,min=8"`
+}
+
+func CreateUserHandler(c *gin.Context) {
+	val, _ := c.Get("env")
+	env := val.(*models.Env)
+
+	var req CreateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 		return
 	}
-	token := strings.TrimPrefix(authHeader, "Bearer ")
-	if token != "SAMPLE_TOKEN" { // In real app, validate JWT
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+
+	if err := env.Validator.Struct(req); err != nil {
+		env.Logger.Error(err.Error())
+		response := constants.RESPONSE_BAD_REQUEST
+		response["error"] = err.Error()
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
-	c.Next()
+
+	user, err := services.CreateUser(env, req.Username, req.Password)
+	if err != nil {
+		env.Logger.Error(err.Error())
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "User created successfully",
+		"user_id": user.ID,
+	})
 }
