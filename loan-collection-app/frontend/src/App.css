@@ -1,0 +1,73 @@
+/* Global Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Dark Theme Overrides */
+body.dark-theme {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 700;
+    color: #16213e;
+}
+
+.dark-theme h1,
+.dark-theme h2,
+.dark-theme h3,
+.dark-theme h4,
+.dark-theme h5,
+.dark-theme h6 {
+    color: #8a4fff;
+}
+
+/* App Container */
+.App {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #8a4fff;
+    border-color: #8a4fff;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #6a3fff;
+    border-color: #6a3fff;
+}
+
+/* Form Styles */
+.form-control {
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #8a4fff;
+    box-shadow: 0 0 0 0.2rem rgba(138, 79, 255, 0.25);
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
