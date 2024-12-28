@@ -29,6 +29,22 @@ func DeleteRole(env *models.Env, roleID uint64) error {
 	return roleRepo.DeleteRole(roleID)
 }
 
+func AssignRolesToUser(env *models.Env, userID string, roleList []string) error {
+	roleRepo := repository.NewRoleRepository(env.DbConn)
+
+	for _, roleName := range roleList {
+		role, err := roleRepo.GetRoleByName(roleName)
+		if err != nil {
+			return err
+		}
+
+		if err := roleRepo.AssignRoleToUser(userID, role.ID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func AssignRoleToUser(env *models.Env, userID, roleID string) error {
 	roleRepo := repository.NewRoleRepository(env.DbConn)
 	return roleRepo.AssignRoleToUser(userID, roleID)

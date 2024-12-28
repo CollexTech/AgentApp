@@ -31,7 +31,15 @@ func route(router *gin.RouterGroup) {
 	{
 		// Authentication
 		agentRoutesV1.POST("/login", handlers.LoginHandler)
-		agentRoutesV1.POST("/register", middlewares.AuthMiddleware, middlewares.PermissionMiddleware("create-user"), handlers.CreateUserHandler)
+		agentRoutesV1.POST("/users/register",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("create_user"),
+			handlers.CreateUserHandler)
+
+		agentRoutesV1.GET("/users",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("view_users"),
+			handlers.ListAllUsers)
 
 		// Protected routes
 		agentRoutesV1.GET("/cases",

@@ -83,8 +83,8 @@ func DeleteRole(c *gin.Context) {
 }
 
 type AssignRoleToUserRequest struct {
-	UserID string `json:"user_id" binding:"required"`
-	RoleID string `json:"role_id" binding:"required"`
+	UserID   string   `json:"user_id" binding:"required"`
+	RoleList []string `json:"role_list" binding:"required"`
 }
 
 func AssignRoleToUser(c *gin.Context) {
@@ -98,12 +98,12 @@ func AssignRoleToUser(c *gin.Context) {
 		return
 	}
 
-	if err := services.AssignRoleToUser(env, assignInput.UserID, assignInput.RoleID); err != nil {
+	if err := services.AssignRolesToUser(env, assignInput.UserID, assignInput.RoleList); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Role assigned successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Roles assigned successfully"})
 }
 
 type RemoveRoleFromUserRequest struct {

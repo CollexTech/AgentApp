@@ -4,7 +4,7 @@ import axios from "axios";
 const BACKEND_HOST = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
 
 const TOKEN_KEY = "app_token";
-const API_BASE_URL = `${BACKEND_HOST}/agent/api/v1`;
+const API_BASE_URL = `${BACKEND_HOST}/api/v1`;
 
 // Create an axios instance with base URL and default headers
 const api = axios.create({

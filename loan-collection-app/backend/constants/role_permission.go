@@ -12,6 +12,7 @@ var RolePermissionsMap = map[string][]string{
 		"delete_role",
 		"assign_role_to_user",
 		"remove_role_from_user",
+		"view_users",
 	},
 	"agent": {
 		"view_cases",

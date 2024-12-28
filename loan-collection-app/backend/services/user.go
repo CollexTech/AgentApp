@@ -67,3 +67,8 @@ func CreateUser(env *models.Env, username, password string) (*models.User, error
 
 	return user, nil
 }
+
+func ListAllUsers(env *models.Env) ([]models.User, error) {
+	repository := repository.NewUserRepository(env.DbConn)
+	return repository.ListAllUsers()
+}

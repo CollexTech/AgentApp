@@ -60,3 +60,39 @@ export async function getUserRolesAndPermissions() {
   const res = await instance.get("/permissions/me");
   return res.data;
 }
+
+export async function fetchUsers() {
+  const res = await instance.get("/users");
+  return res.data;
+}
+
+export async function createUser(userData) {
+  const res = await instance.post("/users/register", userData);
+  return res.data;
+}
+
+export const assignRolesToUser = async (userId, roleList) => {
+  console.log("assignRolesToUser", userId, roleList);
+    const response = await fetch(`${BACKEND_HOST}/api/v1/roles/assign`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify({
+            user_id: userId,
+            role_list: roleList
+        })
+    });
+    
+    if (!response.ok) {
+        throw new Error('Failed to assign roles');
+    }
+    
+    return await response.json();
+};
+
+export async function getAllAvailableRoles() {
+  const res = await instance.get("/roles");
+  return res.data;
+}

@@ -76,3 +76,12 @@ func (r *UserRepository) FindByID(userID string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func (r *UserRepository) ListAllUsers() ([]models.User, error) {
+	var users []models.User
+	result := r.db.Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return users, nil
+}

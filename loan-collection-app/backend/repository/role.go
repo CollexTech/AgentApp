@@ -67,3 +67,9 @@ func (r *RoleRepository) ListAllRoles() ([]models.Role, error) {
 	err := r.db.Find(&roles).Error
 	return roles, err
 }
+
+func (r *RoleRepository) GetRoleByName(roleName string) (*models.Role, error) {
+	var role models.Role
+	err := r.db.Where("role_name = ?", roleName).First(&role).Error
+	return &role, err
+}
