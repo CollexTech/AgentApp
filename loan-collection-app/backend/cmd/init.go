@@ -13,12 +13,12 @@ import (
 var (
 	rootCommand = &cobra.Command{
 		Use:   ``,
-		Short: "nodeops oms",
+		Short: "agent app",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			loadConfigFiles()
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("nodeops oms")
+			fmt.Println("agent app")
 		},
 	}
 	serveHTTP = &cobra.Command{

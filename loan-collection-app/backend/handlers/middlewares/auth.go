@@ -4,6 +4,8 @@ import (
 	"backend/constants"
 	"backend/models"
 	"backend/repository"
+	"backend/services"
+	"backend/utils"
 	"fmt"
 	"net/http"
 	"strings"
@@ -78,10 +80,44 @@ func AuthMiddleware(c *gin.Context) {
 			return
 		}
 		env.AuthDtos.User = user
+		roleList, err := services.GetRolesByUser(env, user.ID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		userPermissionList := make([]string, 0)
+		for _, role := range roleList {
+			permissionList := constants.RolePermissionsMap[role.RoleName]
+			userPermissionList = append(userPermissionList, permissionList...)
+		}
+		env.PermissionList = userPermissionList
 
 		c.Next()
 	} else {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return
+	}
+}
+
+// PermissionMiddleware checks if the authenticated user has the required permission
+func PermissionMiddleware(requiredPermission string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Get environment from context
+		val, exists := c.Get("env")
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Environment not configured"})
+			return
+		}
+		env := val.(*models.Env)
+
+		// Check if user has the required permission
+		if !utils.HasPermission(env, requiredPermission) {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"error": fmt.Sprintf("Insufficient permissions. Required: %s", requiredPermission),
+			})
+			return
+		}
+
+		c.Next()
 	}
 }

@@ -4,7 +4,7 @@ import { getAuthToken } from "./auth";
 const BACKEND_HOST = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
 
 const instance = axios.create({
-  baseURL: `${BACKEND_HOST}/agent/api/v1`,
+  baseURL: `${BACKEND_HOST}/api/v1`,
 });
 
 // Add token to headers for all requests
@@ -53,5 +53,10 @@ export async function postTrail(caseId, trail) {
 
 export async function getPaymentLink(caseId) {
   const res = await instance.get(`/cases/${caseId}/payment-link`);
+  return res.data;
+}
+
+export async function getUserRolesAndPermissions() {
+  const res = await instance.get("/permissions/me");
   return res.data;
 }
