@@ -96,3 +96,55 @@ export async function getAllAvailableRoles() {
   const res = await instance.get("/roles");
   return res.data;
 }
+
+const API_BASE_URL = `${BACKEND_HOST}/api/v1`;
+
+// Helper function to get auth headers
+const getAuthHeaders = () => ({
+  'Authorization': `Bearer ${getAuthToken()}`
+});
+
+// Helper function to handle API responses
+const handleResponse = async (response) => {
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || 'An error occurred');
+  }
+  return response.json();
+};
+
+// Update the agency-related functions
+export const createAgency = async (agencyData) => {
+  try {
+    const response = await instance.post('/agencies', agencyData);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to create agency: ' + error.message);
+  }
+};
+
+export const assignUserToAgency = async (assignmentData) => {
+  try {
+    const response = await instance.post('/agencies/users', assignmentData);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to assign user to agency: ' + error.message);
+  }
+};
+
+export const assignCaseToUser = async (assignmentData) => {
+  try {
+    const response = await instance.post('/cases/assign', assignmentData);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to assign case to user: ' + error.message);
+  }
+};
+
+export const getAgencies = () => {
+  return instance.get('/agencies');
+};
+
+export const deleteAgency = (agencyId) => {
+  return instance.delete(`/agencies/${agencyId}`);
+};

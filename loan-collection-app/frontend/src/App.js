@@ -10,6 +10,7 @@ import HomePage from './components/HomePage';
 import { getUserRolesAndPermissions } from './service/api';
 import { getAuthToken } from './service/auth';
 import './App.css';
+import AgencyManagement from './components/AgencyManagement';
 
 // Theme remains the same as in the previous App.js
 
@@ -99,6 +100,7 @@ function App() {
                 <Route path="/cases" element={<CasesList />} />
                 <Route path="/cases/:id" element={<CaseDetails />} />
                 <Route path="/users" element={<UserManagement />} />
+                <Route path="/agency-management" element={<AgencyManagement />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Box>

@@ -107,6 +107,32 @@ func route(router *gin.RouterGroup) {
 			middlewares.AuthMiddleware,
 			middlewares.PermissionMiddleware("view_my_permissions"),
 			handlers.GetMyPermissions)
+
+		agentRoutesV1.GET("/agencies",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("view_agencies"),
+			handlers.ListAllAgencies)
+
+		agentRoutesV1.POST("/agencies",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("create_agency"),
+			handlers.CreateAgency)
+
+		agentRoutesV1.DELETE("/agencies/:id",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("delete_agency"),
+			handlers.DeleteAgency)
+
+		agentRoutesV1.POST("/agencies/users",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("assign_agency_user"),
+			handlers.AssignUserToAgency)
+
+		agentRoutesV1.POST("/cases/assign",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("assign_case"),
+			handlers.AssignCaseToUser)
+
 	}
 	router.GET("/health-check", handlers.Healthcheck)
 	router.OPTIONS("/*any", handlers.OptionsHandle)

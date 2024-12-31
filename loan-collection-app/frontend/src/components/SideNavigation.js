@@ -11,13 +11,22 @@ import {
 import { 
   Home as HomeIcon, 
   ListAlt as CaseIcon, 
-  People as UsersIcon
+  People as UsersIcon,
+  Business as BuildingIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
 const drawerWidth = 240;
 
 function SideNavigation({ permissions }) {
+  const navigationItems = [
+    {
+      path: '/agency-management',
+      icon: 'building',
+      label: 'Agency Management'
+    }
+  ];
+
   return (
     <Drawer
       variant="permanent"
@@ -50,6 +59,12 @@ function SideNavigation({ permissions }) {
               <UsersIcon />
             </ListItemIcon>
             <ListItemText primary="User Management" />
+          </ListItem>
+          <ListItem button component={Link} to="/agency-management">
+            <ListItemIcon>
+              <BuildingIcon />
+            </ListItemIcon>
+            <ListItemText primary="Agency Management" />
           </ListItem>
         </List>
       </Box>
