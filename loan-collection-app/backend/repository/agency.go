@@ -56,7 +56,7 @@ func (r *AgencyRepository) AssignUserToAgency(mapping *models.AgencyUserMap) err
 		return err
 	}
 
-	result := r.db.Create(mapping)
+	result := r.db.Table("agency_user_map").Create(mapping)
 	return result.Error
 }
 
@@ -92,4 +92,37 @@ func (r *AgencyRepository) ListCases(status string, agencyID string) ([]models.C
 	cases := []models.Case{}
 	result := r.db.Where("status = ?", status).Where("agency_id = ? and status = ?", agencyID, status).Find(&cases)
 	return cases, result.Error
+}
+
+func (r *AgencyRepository) ListAgencyUsers(agencyID string) ([]models.AgencyUserDetails, error) {
+	var users []models.AgencyUserDetails
+
+	result := r.db.Table("agency_user_map").
+		Select("users.id as user_id, users.username, users.email, agency_user_map.agency_role, agency_user_map.manager_id").
+		Joins("JOIN users ON users.id = agency_user_map.user_id").
+		Where("agency_user_map.agency_id = ? AND agency_user_map.is_active = true", agencyID).
+		Scan(&users)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return users, nil
+}
+
+func (r *AgencyRepository) ListUnassignedUsers() ([]models.User, error) {
+	var users []models.User
+
+	// Get users who are not assigned to any agency or whose assignments are not active
+	result := r.db.Table("users").
+		Select("users.*").
+		Joins("LEFT JOIN agency_user_map ON users.id = agency_user_map.user_id AND agency_user_map.is_active = true").
+		Where("agency_user_map.id IS NULL").
+		Scan(&users)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return users, nil
 }

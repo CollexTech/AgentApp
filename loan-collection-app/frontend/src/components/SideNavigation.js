@@ -12,7 +12,9 @@ import {
   Home as HomeIcon, 
   ListAlt as CaseIcon, 
   People as UsersIcon,
-  Business as BuildingIcon
+  Business as BuildingIcon,
+  GroupAdd as GroupAddIcon,
+  Upload as UploadFile
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
@@ -65,6 +67,18 @@ function SideNavigation({ permissions }) {
               <BuildingIcon />
             </ListItemIcon>
             <ListItemText primary="Agency Management" />
+          </ListItem>
+          <ListItem button component={Link} to="/agency-user-mapping">
+            <ListItemIcon>
+              <GroupAddIcon />
+            </ListItemIcon>
+            <ListItemText primary="Agency User Mapping" />
+          </ListItem>
+          <ListItem button component={Link} to="/case-onboarding">
+            <ListItemIcon>
+              <UploadFile />
+            </ListItemIcon>
+            <ListItemText primary="Case Onboarding" />
           </ListItem>
         </List>
       </Box>

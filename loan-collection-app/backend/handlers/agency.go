@@ -28,7 +28,7 @@ func ListAllAgencies(c *gin.Context) {
 		return
 	}
 
-	var response []ListAgenciesResponse
+	response := []ListAgenciesResponse{}
 	for _, agency := range agencies {
 		var agencyDetails map[string]string
 		json.Unmarshal(agency.AgencyDetails, &agencyDetails)
@@ -96,14 +96,29 @@ func DeleteAgency(c *gin.Context) {
 	}
 }
 
+type AssignUserToAgencyRequest struct {
+	UserID     string  `json:"user_id" binding:"required"`
+	AgencyID   string  `json:"agency_id" binding:"required"`
+	AgencyRole string  `json:"agency_role" binding:"required"`
+	ManagerID  *string `json:"manager_id"`
+}
+
 func AssignUserToAgency(c *gin.Context) {
 	val, _ := c.Get("env")
 	env := val.(*models.Env)
 
-	var mapping models.AgencyUserMap
-	if err := c.ShouldBindJSON(&mapping); err != nil {
+	var mappingRequest AssignUserToAgencyRequest
+	if err := c.ShouldBindJSON(&mappingRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	mapping := models.AgencyUserMap{
+		UserID:     mappingRequest.UserID,
+		AgencyID:   mappingRequest.AgencyID,
+		AgencyRole: mappingRequest.AgencyRole,
+		ManagerID:  mappingRequest.ManagerID,
+		IsActive:   true,
 	}
 
 	if err := services.AssignUserToAgency(env, &mapping); err != nil {
@@ -130,4 +145,65 @@ func AssignCaseToUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, mapping)
+}
+
+type ListAgencyUsersResponse struct {
+	ID        string  `json:"id"`
+	Username  string  `json:"username"`
+	Email     string  `json:"email"`
+	Role      string  `json:"role"`
+	ManagerID *string `json:"manager_id,omitempty"`
+}
+
+type UnassignedUsersResponse struct {
+	ID       string  `json:"id"`
+	Username string  `json:"username"`
+	Email    *string `json:"email"`
+}
+
+func GetAgencyUsers(c *gin.Context) {
+	val, _ := c.Get("env")
+	env := val.(*models.Env)
+
+	agencyID := c.Param("agency_id")
+	users, err := services.ListAgencyUsers(env, agencyID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	response := []ListAgencyUsersResponse{}
+	for _, user := range users {
+		response = append(response, ListAgencyUsersResponse{
+			ID:        user.UserID,
+			Username:  user.Username,
+			Email:     user.Email,
+			Role:      user.AgencyRole,
+			ManagerID: user.ManagerID,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func GetUnassignedUsers(c *gin.Context) {
+	val, _ := c.Get("env")
+	env := val.(*models.Env)
+
+	users, err := services.ListUnassignedUsers(env)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	response := []UnassignedUsersResponse{}
+	for _, user := range users {
+		response = append(response, UnassignedUsersResponse{
+			ID:       user.ID,
+			Username: user.Username,
+			Email:    user.Email,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }

@@ -1,0 +1,6 @@
+loan_id,external_customer_id,emi_amount,principal_outstanding,interest_outstanding,case_status,emi_date,dpd_bucket,dpd,disbursal_date,insurance_active,loan_description,emis_paid_till_date,emis_pending,bounce_charges,nach_presentation_status
+LOAN001,CUST001,5000.00,95000.00,2500.00,PENDING,2024-03-15,DPD30,30,2023-09-01,true,Personal Loan,6,18,500.00,PENDING
+LOAN002,CUST002,7500.00,142500.00,3750.00,PENDING,2024-03-20,DPD45,45,2023-08-15,false,Home Renovation Loan,5,19,750.00,FAILED
+LOAN003,CUST003,3000.00,57000.00,1500.00,PENDING,2024-03-25,DPD15,15,2023-10-01,true,Education Loan,3,21,300.00,PENDING
+LOAN004,CUST004,10000.00,190000.00,5000.00,PENDING,2024-03-10,DPD60,60,2023-07-01,false,Business Loan,8,16,1000.00,FAILED
+LOAN005,CUST005,4500.00,85500.00,2250.00,PENDING,2024-03-18,DPD30,30,2023-09-15,true,Vehicle Loan,4,20,450.00,PENDING 

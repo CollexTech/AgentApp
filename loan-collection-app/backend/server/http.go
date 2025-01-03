@@ -128,10 +128,30 @@ func route(router *gin.RouterGroup) {
 			middlewares.PermissionMiddleware("assign_agency_user"),
 			handlers.AssignUserToAgency)
 
+		agentRoutesV1.GET("/agencies/:agency_id/users",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("view_agency_users"),
+			handlers.GetAgencyUsers)
+
+		agentRoutesV1.GET("/agencies/unassigned-users",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("view_unassigned_users"),
+			handlers.GetUnassignedUsers)
+
+		agentRoutesV1.POST("/cases/upload",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("upload_cases"),
+			handlers.UploadCasesHandler)
+
+		agentRoutesV1.GET("/cases/unassigned",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("view_unassigned_cases"),
+			handlers.GetUnassignedCasesHandler)
+
 		agentRoutesV1.POST("/cases/assign",
 			middlewares.AuthMiddleware,
-			middlewares.PermissionMiddleware("assign_case"),
-			handlers.AssignCaseToUser)
+			middlewares.PermissionMiddleware("assign_cases"),
+			handlers.AssignCasesHandler)
 
 	}
 	router.GET("/health-check", handlers.Healthcheck)

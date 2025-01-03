@@ -5,19 +5,22 @@ import (
 	"backend/services"
 	"encoding/csv"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
+// UploadCasesHandler handles the CSV upload and case creation
 func UploadCasesHandler(c *gin.Context) {
+	val, _ := c.Get("env")
+	env := val.(*models.Env)
+
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No file uploaded"})
 		return
 	}
 
-	// Open the file
 	openedFile, err := file.Open()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error opening file"})
@@ -25,7 +28,6 @@ func UploadCasesHandler(c *gin.Context) {
 	}
 	defer openedFile.Close()
 
-	// Parse CSV
 	reader := csv.NewReader(openedFile)
 	records, err := reader.ReadAll()
 	if err != nil {
@@ -33,71 +35,97 @@ func UploadCasesHandler(c *gin.Context) {
 		return
 	}
 
-	db := c.MustGet("db").(*gorm.DB)
-	var cases []models.Case
-
-	// Skip header row
-	for i, record := range records {
-		if i == 0 {
-			continue
-		}
-		// Parse CSV data into Case struct
-		// Add validation and error handling as needed
-		loanCase := models.Case{
-			ExternalCustomerID: record[0],
-			LoanID:             record[1],
-			// ... parse other fields
-			CaseStatus: "PENDING",
-		}
-		cases = append(cases, loanCase)
-	}
-
-	// Bulk insert cases
-	if result := db.Create(&cases); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating cases"})
+	cases, err := services.CreateCasesFromCSV(env, records)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Cases uploaded successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Cases uploaded successfully",
+		"count":   len(cases),
+	})
 }
 
-func ListCasesHandler(c *gin.Context) {
+type GetUnassignedCasesResponse struct {
+	ID                     string    `json:"id"`
+	LoanID                 string    `json:"loan_id"`
+	ExternalCustomerID     string    `json:"external_customer_id"`
+	EMIAmount              float64   `json:"emi_amount"`
+	PrincipalOutstanding   float64   `json:"principal_outstanding"`
+	InterestOutstanding    float64   `json:"interest_outstanding"`
+	CaseStatus             string    `json:"case_status"`
+	EMIDate                time.Time `json:"emi_date"`
+	DPDBucket              string    `json:"dpd_bucket"`
+	DPD                    int       `json:"dpd"`
+	DisbursalDate          time.Time `json:"disbursal_date"`
+	InsuranceActive        bool      `json:"insurance_active"`
+	LoanDescription        string    `json:"loan_description"`
+	EMIsPaidTillDate       int       `json:"emis_paid_till_date"`
+	EMIsPending            int       `json:"emis_pending"`
+	BounceCharges          float64   `json:"bounce_charges"`
+	NachPresentationStatus string    `json:"nach_presentation_status"`
+}
+
+// GetUnassignedCasesHandler returns cases not assigned to any agency
+func GetUnassignedCasesHandler(c *gin.Context) {
 	val, _ := c.Get("env")
 	env := val.(*models.Env)
 
-	status := c.Query("status")
-	agencyID := c.Query("agency_id")
-
-	cases, err := services.ListCases(env, status, agencyID)
+	cases, err := services.GetUnassignedCases(env)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching cases"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, cases)
+	response := []GetUnassignedCasesResponse{}
+	for _, c := range cases {
+		response = append(response, GetUnassignedCasesResponse{
+			ID:                     c.ID,
+			LoanID:                 c.LoanID,
+			ExternalCustomerID:     c.ExternalCustomerID,
+			EMIAmount:              c.EMIAmount,
+			PrincipalOutstanding:   c.PrincipalOutstanding,
+			InterestOutstanding:    c.InterestOutstanding,
+			CaseStatus:             c.CaseStatus,
+			EMIDate:                c.EMIDate,
+			DPDBucket:              c.DPDBucket,
+			DPD:                    c.DPD,
+			DisbursalDate:          c.DisbursalDate,
+			InsuranceActive:        c.InsuranceActive,
+			LoanDescription:        c.LoanDescription,
+			EMIsPaidTillDate:       c.EMIsPaidTillDate,
+			EMIsPending:            c.EMIsPending,
+			BounceCharges:          c.BounceCharges,
+			NachPresentationStatus: c.NachPresentationStatus,
+		})
+	}
 
+	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
+// AssignCasesRequest represents the request body for case assignment
 type AssignCasesRequest struct {
-	AgencyID string   `json:"agency_id"`
-	CaseIDs  []string `json:"case_ids"`
+	AgencyID string   `json:"agency_id" binding:"required"`
+	CaseIDs  []string `json:"case_ids" binding:"required"`
 }
 
+// AssignCasesHandler handles assigning cases to an agency
 func AssignCasesHandler(c *gin.Context) {
 	val, _ := c.Get("env")
 	env := val.(*models.Env)
 
-	var request AssignCasesRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	var req AssignCasesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	agencyCaseMapList, err := services.AssignCases(env, request.AgencyID, request.CaseIDs)
+	err := services.AssignCasesToAgency(env, req.AgencyID, req.CaseIDs)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error assigning cases"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, agencyCaseMapList)
+	c.JSON(http.StatusOK, gin.H{"message": "Cases assigned successfully"})
 }

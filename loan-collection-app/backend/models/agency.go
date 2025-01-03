@@ -40,3 +40,11 @@ type AgencyCaseMap struct {
 	AssignedAt time.Time `gorm:"type:timestamp;not null"`
 	UpdatedAt  time.Time `gorm:"type:timestamp;not null"`
 }
+
+type AgencyUserDetails struct {
+	UserID     string
+	Username   string
+	Email      string
+	AgencyRole string
+	ManagerID  *string
+}

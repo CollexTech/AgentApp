@@ -148,3 +148,59 @@ export const getAgencies = () => {
 export const deleteAgency = (agencyId) => {
   return instance.delete(`/agencies/${agencyId}`);
 };
+
+export const getAgencyUsers = async (agencyId) => {
+  try {
+    const response = await instance.get(`/agencies/${agencyId}/users`);
+    // Return the data in a consistent format
+    return Array.isArray(response.data) ? response.data : 
+           Array.isArray(response?.data?.data) ? response.data.data : [];
+  } catch (error) {
+    console.error('Error fetching agency users:', error);
+    throw error;
+  }
+};
+
+export const getUnassignedUsers = async () => {
+  try {
+    const response = await instance.get('/agencies/unassigned-users');
+    // Return the data in a consistent format
+    return {
+      data: Array.isArray(response.data) ? response.data : response.data?.data || []
+    };
+  } catch (error) {
+    console.error('Error fetching unassigned users:', error);
+    throw error;
+  }
+};
+
+export const uploadCases = async (formData) => {
+  try {
+    const response = await instance.post('/cases/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to upload cases: ' + error.message);
+  }
+};
+
+export const getUnassignedCases = async () => {
+  try {
+    const response = await instance.get('/cases/unassigned');
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch unassigned cases: ' + error.message);
+  }
+};
+
+export const assignCasesToAgency = async (assignmentData) => {
+  try {
+    const response = await instance.post('/cases/assign', assignmentData);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to assign cases: ' + error.message);
+  }
+}; 

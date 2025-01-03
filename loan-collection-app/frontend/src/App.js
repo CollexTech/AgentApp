@@ -11,7 +11,8 @@ import { getUserRolesAndPermissions } from './service/api';
 import { getAuthToken } from './service/auth';
 import './App.css';
 import AgencyManagement from './components/AgencyManagement';
-
+import AgencyUserMapping from './components/AgencyUserMapping';
+import CaseOnboarding from './components/CaseOnboarding';
 // Theme remains the same as in the previous App.js
 
 const theme = createTheme({
@@ -101,6 +102,8 @@ function App() {
                 <Route path="/cases/:id" element={<CaseDetails />} />
                 <Route path="/users" element={<UserManagement />} />
                 <Route path="/agency-management" element={<AgencyManagement />} />
+                <Route path="/agency-user-mapping" element={<AgencyUserMapping />} />
+                <Route path="/case-onboarding" element={<CaseOnboarding />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Box>
