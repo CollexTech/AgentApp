@@ -85,3 +85,15 @@ func (r *UserRepository) ListAllUsers() ([]models.User, error) {
 	}
 	return users, nil
 }
+
+func (r *UserRepository) GetUserAgencyID(userID string) (string, error) {
+	var agencyUserMap models.AgencyUserMap
+	result := r.db.Where("user_id = ?", userID).First(&agencyUserMap)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return "", nil
+		}
+		return "", result.Error
+	}
+	return agencyUserMap.AgencyID, nil
+}

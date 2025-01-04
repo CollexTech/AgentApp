@@ -88,9 +88,12 @@ func (r *AgencyRepository) CreateAgencyCaseMap(agencyCaseMapList []models.Agency
 	return result.Error
 }
 
-func (r *AgencyRepository) ListCases(status string, agencyID string) ([]models.Case, error) {
+func (r *AgencyRepository) ListCases(agencyID string) ([]models.Case, error) {
 	cases := []models.Case{}
-	result := r.db.Where("status = ?", status).Where("agency_id = ? and status = ?", agencyID, status).Find(&cases)
+	result := r.db.Table("cases").
+		Joins("JOIN agency_case_map ON cases.id = agency_case_map.case_id").
+		Where("agency_case_map.agency_id = ?", agencyID).
+		Find(&cases)
 	return cases, result.Error
 }
 

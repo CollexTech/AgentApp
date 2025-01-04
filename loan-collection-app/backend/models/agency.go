@@ -25,6 +25,10 @@ type AgencyUserMap struct {
 	UpdatedAt  time.Time `gorm:"type:timestamp;not null"`
 }
 
+func (AgencyUserMap) TableName() string {
+	return "agency_user_map"
+}
+
 type CaseUserMap struct {
 	ID         string    `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	CaseID     string    `gorm:"type:uuid;not null"`
@@ -41,10 +45,14 @@ type AgencyCaseMap struct {
 	UpdatedAt  time.Time `gorm:"type:timestamp;not null"`
 }
 
+func (AgencyCaseMap) TableName() string {
+	return "agency_case_map"
+}
+
 type AgencyUserDetails struct {
-	UserID     string
-	Username   string
-	Email      string
-	AgencyRole string
-	ManagerID  *string
+	UserID     string  `json:"user_id"`
+	Username   string  `json:"username"`
+	Email      string  `json:"email"`
+	AgencyRole string  `json:"agency_role"`
+	ManagerID  *string `json:"manager_id"`
 }

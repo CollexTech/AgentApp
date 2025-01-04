@@ -33,9 +33,14 @@ func AssignCaseToUser(env *models.Env, mapping *models.CaseUserMap) error {
 	repo := repository.NewAgencyRepository(env.DbConn)
 	return repo.AssignCaseToUser(mapping)
 }
-func ListAgencyUsers(env *models.Env, agencyID string) ([]models.AgencyUserDetails, error) {
-	repo := repository.NewAgencyRepository(env.DbConn)
-	return repo.ListAgencyUsers(agencyID)
+func ListAgencyUsers(env *models.Env, userID string) ([]models.AgencyUserDetails, error) {
+	userRepository := repository.NewUserRepository(env.DbConn)
+	agencyID, err := userRepository.GetUserAgencyID(userID)
+	if err != nil {
+		return nil, err
+	}
+	agencyRepository := repository.NewAgencyRepository(env.DbConn)
+	return agencyRepository.ListAgencyUsers(agencyID)
 }
 
 func ListUnassignedUsers(env *models.Env) ([]models.User, error) {

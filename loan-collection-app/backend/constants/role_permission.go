@@ -27,6 +27,15 @@ var RolePermissionsMap = map[string][]string{
 		"view_unassigned_cases",
 		"assign_cases",
 	},
+	"agency_admin": {
+		"view_agency_cases",
+		"assign_agency_cases",
+		"view_roles",
+		"view_users",
+		"view_agency_users",
+		"view_agency_user_mapping",
+		"assign_user_to_agency",
+	},
 	"agent": {
 		"view_cases",
 		"view_trails",

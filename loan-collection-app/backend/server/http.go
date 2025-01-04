@@ -130,7 +130,7 @@ func route(router *gin.RouterGroup) {
 
 		agentRoutesV1.GET("/agencies/:agency_id/users",
 			middlewares.AuthMiddleware,
-			middlewares.PermissionMiddleware("view_agency_users"),
+			middlewares.PermissionMiddleware("view_all_agency_users"),
 			handlers.GetAgencyUsers)
 
 		agentRoutesV1.GET("/agencies/unassigned-users",
@@ -152,6 +152,22 @@ func route(router *gin.RouterGroup) {
 			middlewares.AuthMiddleware,
 			middlewares.PermissionMiddleware("assign_cases"),
 			handlers.AssignCasesHandler)
+
+		// Add these routes to your existing routes
+		agentRoutesV1.GET("/agencies/cases",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("view_agency_cases"),
+			handlers.GetAgencyCasesHandler)
+
+		agentRoutesV1.GET("/agencies/users",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("view_agency_users"),
+			handlers.GetAgencyUsersHandler)
+
+		agentRoutesV1.POST("/agencies/cases/assign",
+			middlewares.AuthMiddleware,
+			middlewares.PermissionMiddleware("assign_agency_cases"),
+			handlers.AssignAgencyCaseHandler)
 
 	}
 	router.GET("/health-check", handlers.Healthcheck)

@@ -132,15 +132,6 @@ export const assignUserToAgency = async (assignmentData) => {
   }
 };
 
-export const assignCaseToUser = async (assignmentData) => {
-  try {
-    const response = await instance.post('/cases/assign', assignmentData);
-    return response.data;
-  } catch (error) {
-    throw new Error('Failed to assign case to user: ' + error.message);
-  }
-};
-
 export const getAgencies = () => {
   return instance.get('/agencies');
 };
@@ -158,6 +149,15 @@ export const getAgencyUsers = async (agencyId) => {
   } catch (error) {
     console.error('Error fetching agency users:', error);
     throw error;
+  }
+};
+
+export const getMyAgencyUsers = async () => {
+  try {
+    const response = await instance.get('/agencies/users');
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch agency users: ' + error.message);
   }
 };
 
@@ -204,3 +204,21 @@ export const assignCasesToAgency = async (assignmentData) => {
     throw new Error('Failed to assign cases: ' + error.message);
   }
 }; 
+
+export const getAgencyCases = async () => {
+  try {
+    const response = await instance.get('/agencies/cases');
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch agency cases: ' + error.message);
+  }
+};
+
+export const assignCaseToUser = async (assignmentData) => {
+  try {
+    const response = await instance.post('/agencies/cases/assign', assignmentData);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to assign case: ' + error.message);
+  }
+};

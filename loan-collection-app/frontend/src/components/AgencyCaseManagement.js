@@ -19,29 +19,22 @@ import {
   Select,
   MenuItem,
   Grid,
-  IconButton,
   Box,
-  Alert
+  Alert,
+  Checkbox
 } from '@mui/material';
-import { UploadFile, AssignmentInd, MoreVert } from '@mui/icons-material';
-import { 
-  uploadCases, 
-  getUnassignedCases, 
-  getAgencies, 
-  assignCasesToAgency 
-} from '../service/api';
-import Checkbox from '@mui/material/Checkbox';
+import { AssignmentInd } from '@mui/icons-material';
+import { getAgencyCases, getMyAgencyUsers, assignCaseToUser } from '../service/api';
 
-function CaseOnboarding() {
+function AgencyCaseManagement() {
   const [cases, setCases] = useState([]);
-  const [agencies, setAgencies] = useState([]);
-  const [selectedAgency, setSelectedAgency] = useState('');
+  const [agencyUsers, setAgencyUsers] = useState([]);
+  const [selectedCases, setSelectedCases] = useState([]);
+  const [selectedUser, setSelectedUser] = useState('');
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [selectedCases, setSelectedCases] = useState([]);
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -50,33 +43,13 @@ function CaseOnboarding() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [fetchedCases, fetchedAgencies] = await Promise.all([
-        getUnassignedCases(),
-        getAgencies()
+      const [fetchedCases, fetchedUsers] = await Promise.all([
+        getAgencyCases(),
+        getMyAgencyUsers()
       ]);
       
       setCases(fetchedCases.data || []);
-      setAgencies(fetchedAgencies.data || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      setIsLoading(true);
-      await uploadCases(formData);
-      setSuccess('Cases uploaded successfully');
-      loadData(); // Refresh the cases list
-      setUploadDialogOpen(false);
+      setAgencyUsers(fetchedUsers.data || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -87,14 +60,19 @@ function CaseOnboarding() {
   const handleAssignCases = async () => {
     try {
       setIsLoading(true);
-      await assignCasesToAgency({
-        agency_id: selectedAgency,
-        case_ids: selectedCases
-      });
+      await Promise.all(
+        selectedCases.map(caseId =>
+          assignCaseToUser({
+            case_id: caseId,
+            user_id: selectedUser
+          })
+        )
+      );
       setSuccess('Cases assigned successfully');
-      loadData(); // Refresh the list
+      loadData();
       setIsAssignDialogOpen(false);
       setSelectedCases([]);
+      setSelectedUser('');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -116,7 +94,7 @@ function CaseOnboarding() {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Typography variant="h4" gutterBottom>
-            Case Onboarding
+            Agency Case Management
           </Typography>
         </Grid>
 
@@ -140,19 +118,11 @@ function CaseOnboarding() {
           <Box sx={{ mb: 2 }}>
             <Button
               variant="contained"
-              startIcon={<UploadFile />}
-              onClick={() => setUploadDialogOpen(true)}
-              sx={{ mr: 2 }}
-            >
-              Upload Cases
-            </Button>
-            <Button
-              variant="contained"
               startIcon={<AssignmentInd />}
               onClick={() => setIsAssignDialogOpen(true)}
               disabled={selectedCases.length === 0}
             >
-              Assign to Agency ({selectedCases.length})
+              Assign to User ({selectedCases.length})
             </Button>
           </Box>
         </Grid>
@@ -179,7 +149,7 @@ function CaseOnboarding() {
                   <TableCell>Customer ID</TableCell>
                   <TableCell>EMI Amount</TableCell>
                   <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell>Assigned To</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -195,11 +165,7 @@ function CaseOnboarding() {
                     <TableCell>{case_.external_customer_id}</TableCell>
                     <TableCell>{case_.emi_amount}</TableCell>
                     <TableCell>{case_.case_status}</TableCell>
-                    <TableCell>
-                      <IconButton>
-                        <MoreVert />
-                      </IconButton>
-                    </TableCell>
+                    <TableCell>{case_.assigned_user?.username || 'Unassigned'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -208,46 +174,20 @@ function CaseOnboarding() {
         </Grid>
       </Grid>
 
-      {/* Upload Dialog */}
-      <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)}>
-        <DialogTitle>Upload Cases</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-            Please upload a CSV file with the following columns:
-            loan_id, external_customer_id, emi_amount, principal_outstanding, etc.
-          </Typography>
-          <Button
-            variant="contained"
-            component="label"
-          >
-            Select File
-            <input
-              type="file"
-              hidden
-              accept=".csv"
-              onChange={handleFileUpload}
-            />
-          </Button>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
-        </DialogActions>
-      </Dialog>
-
       {/* Assign Cases Dialog */}
       <Dialog open={isAssignDialogOpen} onClose={() => setIsAssignDialogOpen(false)}>
-        <DialogTitle>Assign Cases to Agency</DialogTitle>
+        <DialogTitle>Assign Cases to User</DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Select Agency</InputLabel>
+            <InputLabel>Select User</InputLabel>
             <Select
-              value={selectedAgency}
-              onChange={(e) => setSelectedAgency(e.target.value)}
-              label="Select Agency"
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              label="Select User"
             >
-              {agencies.map((agency) => (
-                <MenuItem key={agency.id} value={agency.id}>
-                  {agency.agency_name}
+              {agencyUsers.map((user) => (
+                <MenuItem key={user.id} value={user.id}>
+                  {user.username}
                 </MenuItem>
               ))}
             </Select>
@@ -258,7 +198,7 @@ function CaseOnboarding() {
           <Button
             onClick={handleAssignCases}
             variant="contained"
-            disabled={!selectedAgency}
+            disabled={!selectedUser}
           >
             Assign Cases
           </Button>
@@ -268,4 +208,4 @@ function CaseOnboarding() {
   );
 }
 
-export default CaseOnboarding; 
+export default AgencyCaseManagement; 

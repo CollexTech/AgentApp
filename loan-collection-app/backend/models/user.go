@@ -15,6 +15,7 @@ type User struct {
 	IsActive     bool            `gorm:"default:true"`
 	CreatedAt    time.Time       `gorm:"default:CURRENT_TIMESTAMP"`
 	UpdatedAt    time.Time       `gorm:"default:CURRENT_TIMESTAMP"`
+	AgencyID     *string         `gorm:"-"`
 }
 
 // TableName sets the table name for the User model

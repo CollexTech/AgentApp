@@ -64,7 +64,7 @@ function LoginForm() {
 
     try {
       await login(username, password);
-      navigate("/cases");
+      window.location.reload();
     } catch (err) {
       setError("Invalid credentials. Please try again.");
     }

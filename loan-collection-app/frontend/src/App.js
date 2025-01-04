@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme, Box } from '@mui/material';
 import LoginForm from './components/LoginForm';
 import CasesList from './components/CasesList';
@@ -13,6 +13,7 @@ import './App.css';
 import AgencyManagement from './components/AgencyManagement';
 import AgencyUserMapping from './components/AgencyUserMapping';
 import CaseOnboarding from './components/CaseOnboarding';
+import AgencyCaseManagement from './components/AgencyCaseManagement';
 // Theme remains the same as in the previous App.js
 
 const theme = createTheme({
@@ -61,9 +62,49 @@ const theme = createTheme({
 
 const drawerWidth = 240;
 
+function AuthenticatedContent({ onLogout, permissions }) {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate('/');
+  }, []);
+
+  return (
+    <Box sx={{ display: 'flex' }}>
+      <SideNavigation permissions={permissions} onLogout={onLogout} />
+      <Box 
+        component="main" 
+        sx={{ 
+          flexGrow: 1, 
+          p: 3, 
+          width: { sm: `calc(100% - ${drawerWidth}px)` } 
+        }}
+      >
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/cases" element={<CasesList />} />
+          <Route path="/cases/:id" element={<CaseDetails />} />
+          <Route path="/users" element={<UserManagement />} />
+          <Route path="/agency-management" element={<AgencyManagement />} />
+          <Route path="/agency-user-mapping" element={<AgencyUserMapping />} />
+          <Route path="/case-onboarding" element={<CaseOnboarding />} />
+          <Route path="/agency-cases" element={<AgencyCaseManagement />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Box>
+    </Box>
+  );
+}
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [permissions, setPermissions] = useState([]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setPermissions([]);
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -83,36 +124,16 @@ function App() {
   }, []);
 
   return (
-    // <ThemeProvider theme={theme}>
-      <BrowserRouter>
-        {isAuthenticated ? (
-          <Box sx={{ display: 'flex' }}>
-            <SideNavigation permissions={permissions} />
-            <Box 
-              component="main" 
-              sx={{ 
-                flexGrow: 1, 
-                p: 3, 
-                width: { sm: `calc(100% - ${drawerWidth}px)` } 
-              }}
-            >
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/cases" element={<CasesList />} />
-                <Route path="/cases/:id" element={<CaseDetails />} />
-                <Route path="/users" element={<UserManagement />} />
-                <Route path="/agency-management" element={<AgencyManagement />} />
-                <Route path="/agency-user-mapping" element={<AgencyUserMapping />} />
-                <Route path="/case-onboarding" element={<CaseOnboarding />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Box>
-          </Box>
-        ) : (
-          <LoginForm onLogin={() => setIsAuthenticated(true)} />
-        )}
-      </BrowserRouter>
-    // </ThemeProvider>
+    <BrowserRouter>
+      {isAuthenticated ? (
+        <AuthenticatedContent 
+          onLogout={handleLogout}
+          permissions={permissions}
+        />
+      ) : (
+        <LoginForm onLogin={() => setIsAuthenticated(true)} />
+      )}
+    </BrowserRouter>
   );
 }
 
