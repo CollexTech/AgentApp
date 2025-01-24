@@ -13,7 +13,7 @@ import {
 
 function CaseDetails() {
   const { caseId } = useParams();
-  const [caseInfo, setCaseInfo] = useState({});
+  const [caseInfo, setCaseInfo] = useState(null);
   const [trails, setTrails] = useState([]);
   const [contacted, setContacted] = useState(false);
   const [paymentDate, setPaymentDate] = useState("");
@@ -22,13 +22,16 @@ function CaseDetails() {
 
   useEffect(() => {
     async function fetchData() {
+      if (!caseId) return;
+
       try {
-        const info = await getCaseDetails(caseId);
-        setCaseInfo(info);
-        const tr = await getTrails(caseId);
-        setTrails(tr);
+        const response = await getCaseDetails(caseId);
+        setCaseInfo(response.data);
+        const trailsResponse = await getTrails(caseId);
+        setTrails(trailsResponse?.data || []);
       } catch (err) {
-        console.error(err);
+        setCaseInfo({});
+        setTrails([]);
       }
     }
     fetchData();
@@ -69,22 +72,57 @@ function CaseDetails() {
     window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, "_blank");
   };
 
+  if (!caseId) {
+    return (
+      <Box p={4}>
+        <Typography variant="h4" color="error">
+          Error: Case ID not found
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (!caseInfo) {
+    return (
+      <Box p={4}>
+        <Typography>Loading case details...</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box p={4}>
       <Typography variant="h4" gutterBottom>
-        Case #{caseId} Details
+        Case #{caseInfo.case_id} Details
       </Typography>
       <Paper style={{ padding: 16, marginBottom: 16 }}>
-        <Typography variant="h6">User: {caseInfo.user_name}</Typography>
-        <Typography>Loan ID: {caseInfo.loan_id}</Typography>
-        <Typography>Loan Amount: ₹ {caseInfo.loan_amount}</Typography>
-        <Typography>Monthly EMI: ₹ {caseInfo.emi_monthly}</Typography>
-        <Typography>Days Past Due: {caseInfo.days_past_due}</Typography>
-        <Typography>Address: {caseInfo.customer_addr}</Typography>
-        <Typography>Phone: {caseInfo.customer_phone}</Typography>
-        <Button variant="outlined" sx={{ mt: 2 }} onClick={openMap}>
-          View on Map
-        </Button>
+        <Typography variant="h6">Case Status: {caseInfo.case_status || 'N/A'}</Typography>
+        <Typography>Agent Name: {caseInfo.agent_name || 'N/A'}</Typography>
+        <Typography>Loan ID: {caseInfo.loan_id || 'N/A'}</Typography>
+        <Typography>Loan Amount: ₹ {caseInfo.loan_amount || 0}</Typography>
+        <Typography>Monthly EMI: ₹ {caseInfo.emi_monthly || 0}</Typography>
+        <Typography>Days Past Due: {caseInfo.days_past_due || 0}</Typography>
+        <Typography>DPD: {caseInfo.dpd || 0}</Typography>
+        <Typography>DPD Bucket: {caseInfo.dpd_bucket || 'N/A'}</Typography>
+        <Typography>EMI Date: {caseInfo.emi_date ? new Date(caseInfo.emi_date).toLocaleDateString() : 'N/A'}</Typography>
+        <Typography>Loan Description: {caseInfo.loan_description || 'N/A'}</Typography>
+        <Typography>EMIs Paid: {caseInfo.emis_paid_till_date || 0}</Typography>
+        <Typography>EMIs Pending: {caseInfo.emis_pending || 0}</Typography>
+        <Typography>Bounce Charges: ₹ {caseInfo.bounce_charges || 0}</Typography>
+        <Typography>NACH Status: {caseInfo.nach_presentation_status || 'N/A'}</Typography>
+        <Typography>Insurance Active: {caseInfo.insurance_active ? "Yes" : "No"}</Typography>
+        <Typography>Disbursal Date: {caseInfo.disbursal_date ? new Date(caseInfo.disbursal_date).toLocaleDateString() : 'N/A'}</Typography>
+        
+        <Box mt={2}>
+          <Typography variant="h6">Customer Contact Details</Typography>
+          <Typography>Address: {caseInfo.customer_addr || 'N/A'}</Typography>
+          <Typography>Phone: {caseInfo.customer_phone || 'N/A'}</Typography>
+          {caseInfo.customer_addr && (
+            <Button variant="outlined" onClick={openMap} sx={{ mt: 1 }}>
+              View on Map
+            </Button>
+          )}
+        </Box>
       </Paper>
 
       <Box my={2}>
@@ -135,14 +173,18 @@ function CaseDetails() {
         <Typography variant="h5" gutterBottom>
           Trail History
         </Typography>
-        {trails.map((t) => (
-          <Paper key={t.trail_id} style={{ padding: 16, marginBottom: 8 }}>
-            <Typography>Trail ID: {t.trail_id}</Typography>
-            <Typography>Contacted: {t.contacted ? "Yes" : "No"}</Typography>
-            <Typography>Payment Date: {t.payment_date || "N/A"}</Typography>
-            <Typography>Remarks: {t.remarks}</Typography>
-          </Paper>
-        ))}
+        {trails && trails.length > 0 ? (
+          trails.map((t) => (
+            <Paper key={t.trail_id} style={{ padding: 16, marginBottom: 8 }}>
+              <Typography>Trail ID: {t.trail_id}</Typography>
+              <Typography>Contacted: {t.contacted ? "Yes" : "No"}</Typography>
+              <Typography>Payment Date: {t.payment_date || "N/A"}</Typography>
+              <Typography>Remarks: {t.remarks}</Typography>
+            </Paper>
+          ))
+        ) : (
+          <Typography color="textSecondary">No trails recorded yet.</Typography>
+        )}
       </Box>
     </Box>
   );

@@ -48,9 +48,13 @@ function AgencyCaseManagement() {
         getMyAgencyUsers()
       ]);
       
+      console.log('fetchedUsers:', fetchedUsers);
+      console.log('fetchedUsers.data:', fetchedUsers.data);
+      
       setCases(fetchedCases.data || []);
-      setAgencyUsers(fetchedUsers.data || []);
+      setAgencyUsers(Array.isArray(fetchedUsers.data) ? fetchedUsers.data : []);
     } catch (err) {
+      console.error('Error in loadData:', err);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -165,7 +169,7 @@ function AgencyCaseManagement() {
                     <TableCell>{case_.external_customer_id}</TableCell>
                     <TableCell>{case_.emi_amount}</TableCell>
                     <TableCell>{case_.case_status}</TableCell>
-                    <TableCell>{case_.assigned_user?.username || 'Unassigned'}</TableCell>
+                    <TableCell>{case_.assigned_to?.username || 'Unassigned'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -181,13 +185,20 @@ function AgencyCaseManagement() {
           <FormControl fullWidth sx={{ mt: 2 }}>
             <InputLabel>Select User</InputLabel>
             <Select
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
+              value={selectedUser || ''}
+              onChange={(e) => {
+                console.log('Selected value:', e.target.value);
+                setSelectedUser(e.target.value);
+              }}
               label="Select User"
             >
               {agencyUsers.map((user) => (
-                <MenuItem key={user.id} value={user.id}>
-                  {user.username}
+                <MenuItem 
+                  key={user.user_id} 
+                  value={user.user_id}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {user.username || user.email}
                 </MenuItem>
               ))}
             </Select>

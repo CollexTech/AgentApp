@@ -44,12 +44,12 @@ func route(router *gin.RouterGroup) {
 		// Protected routes
 		agentRoutesV1.GET("/cases",
 			middlewares.AuthMiddleware,
-			middlewares.PermissionMiddleware("view_cases"),
+			middlewares.PermissionMiddleware("view_my_cases"),
 			handlers.GetAgentCases)
 
 		agentRoutesV1.GET("/cases/:caseID",
 			middlewares.AuthMiddleware,
-			middlewares.PermissionMiddleware("view_cases"),
+			middlewares.PermissionMiddleware("view_my_cases"),
 			handlers.GetCaseDetails)
 
 		agentRoutesV1.POST("/cases/:caseID/trails",
@@ -162,7 +162,7 @@ func route(router *gin.RouterGroup) {
 		agentRoutesV1.GET("/agencies/users",
 			middlewares.AuthMiddleware,
 			middlewares.PermissionMiddleware("view_agency_users"),
-			handlers.GetAgencyUsersHandler)
+			handlers.GetMyAgencyUsersHandler)
 
 		agentRoutesV1.POST("/agencies/cases/assign",
 			middlewares.AuthMiddleware,

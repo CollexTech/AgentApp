@@ -22,10 +22,11 @@ function CasesList() {
     async function fetchCases() {
       try {
         const response = await getCases();
-        setCases(response.cases);
-        setTotalEarnings(response.total_earnings);
+        setCases(response.data || []);
+        setTotalEarnings(response.total_earnings || 0);
       } catch (err) {
         console.error(err);
+        setCases([]);
       }
     }
     fetchCases();
@@ -44,25 +45,33 @@ function CasesList() {
           <TableHead>
             <TableRow>
               <TableCell>Case ID</TableCell>
-              <TableCell>User Name</TableCell>
               <TableCell>Loan ID</TableCell>
-              <TableCell>Loan Amount</TableCell>
-              <TableCell>Days Past Due</TableCell>
+              <TableCell>Customer ID</TableCell>
+              <TableCell>EMI Amount</TableCell>
+              <TableCell>DPD</TableCell>
+              <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {cases.map((c) => (
-              <TableRow key={c.case_id}>
-                <TableCell>{c.case_id}</TableCell>
-                <TableCell>{c.user_name}</TableCell>
+              <TableRow key={c.id}>
+                <TableCell>{c.id}</TableCell>
                 <TableCell>{c.loan_id}</TableCell>
-                <TableCell>{c.loan_amount}</TableCell>
-                <TableCell>{c.days_past_due}</TableCell>
+                <TableCell>{c.external_customer_id}</TableCell>
+                <TableCell>₹ {c.emi_amount}</TableCell>
+                <TableCell>{c.dpd}</TableCell>
+                <TableCell>{c.case_status}</TableCell>
                 <TableCell>
                   <Button
                     variant="outlined"
-                    onClick={() => navigate(`/cases/${c.case_id}`)}
+                    onClick={() => {
+                      if (c.id) {
+                        navigate(`/cases/${c.id}`);
+                      } else {
+                        console.error('Case ID is undefined');
+                      }
+                    }}
                   >
                     View
                   </Button>

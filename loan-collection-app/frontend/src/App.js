@@ -83,7 +83,7 @@ function AuthenticatedContent({ onLogout, permissions }) {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/cases" element={<CasesList />} />
-          <Route path="/cases/:id" element={<CaseDetails />} />
+          <Route path="/cases/:caseId" element={<CaseDetails />} />
           <Route path="/users" element={<UserManagement />} />
           <Route path="/agency-management" element={<AgencyManagement />} />
           <Route path="/agency-user-mapping" element={<AgencyUserMapping />} />

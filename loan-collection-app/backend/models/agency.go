@@ -37,6 +37,10 @@ type CaseUserMap struct {
 	UpdatedAt  time.Time `gorm:"type:timestamp;not null"`
 }
 
+func (CaseUserMap) TableName() string {
+	return "case_user_map"
+}
+
 type AgencyCaseMap struct {
 	ID         string    `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	AgencyID   string    `gorm:"type:uuid;not null"`

@@ -74,3 +74,26 @@ func AssignCasesToAgency(env *models.Env, agencyID string, caseIDs []string) err
 	repo := repository.NewCaseRepository(env.DbConn)
 	return repo.AssignCasesToAgency(agencyID, caseIDs)
 }
+
+func GetAssignedUserByCaseID(env *models.Env, caseID string) (*models.User, error) {
+	repo := repository.NewCaseRepository(env.DbConn)
+	return repo.GetAssignedUserByCaseID(caseID)
+}
+
+func GetAssignedCases(env *models.Env, userID string) ([]models.Case, error) {
+	repo := repository.NewCaseRepository(env.DbConn)
+	return repo.GetAssignedCases(userID)
+}
+
+func GetCaseDetails(env *models.Env, caseID string) (*models.Case, *models.User, error) {
+	repo := repository.NewCaseRepository(env.DbConn)
+	caseData, err := repo.GetCase(caseID)
+	if err != nil {
+		return nil, nil, err
+	}
+	userData, err := repo.GetAssignedUserByCaseID(caseID)
+	if err != nil {
+		return nil, nil, err
+	}
+	return caseData, userData, nil
+}

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/models"
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -67,4 +68,49 @@ func (r *CaseRepository) AssignCasesToAgency(agencyID string, caseIDs []string) 
 	}
 
 	return tx.Commit().Error
+}
+
+func (r *CaseRepository) GetAssignedUserByCaseID(caseID string) (*models.User, error) {
+	var user models.User
+
+	err := r.db.Table("users").
+		Select("users.*").
+		Joins("JOIN case_user_map ON users.id = case_user_map.user_id").
+		Where("case_user_map.case_id = ?", caseID).
+		First(&user).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *CaseRepository) GetAssignedCases(userID string) ([]models.Case, error) {
+
+	var cases []models.Case
+
+	err := r.db.Table("cases").
+		Select("cases.*").
+		Joins("JOIN case_user_map ON cases.id = case_user_map.case_id").
+		Where("case_user_map.user_id = ?", userID).
+		Find(&cases).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return cases, nil
+}
+
+func (r *CaseRepository) GetCase(caseID string) (*models.Case, error) {
+	var caseData models.Case
+	err := r.db.Where("id = ?", caseID).First(&caseData).Error
+	if err != nil {
+		return nil, err
+	}
+	return &caseData, nil
 }
