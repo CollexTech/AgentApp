@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Get backend host from environment variables
-const BACKEND_HOST = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
+const BACKEND_HOST = process.env.REACT_APP_BACKEND_HOST || 'https://agent-app-179705954475.asia-south1.run.app';
 
 const TOKEN_KEY = "app_token";
 const API_BASE_URL = `${BACKEND_HOST}/api/v1`;
