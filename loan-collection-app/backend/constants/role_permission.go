@@ -51,6 +51,7 @@ var RolePermissionsMap = map[string][]string{
 		"assign_cases",
 		"view_agency_cases",
 		"assign_agency_cases",
+		"view_agencies",
 	},
 	"default": {
 		"view_my_permissions",
