@@ -45,6 +45,13 @@ var RolePermissionsMap = map[string][]string{
 		"view_trails",
 		"generate_payment_link",
 	},
+	"bank_admin": {
+		"upload_cases",
+		"view_unassigned_cases",
+		"assign_cases",
+		"view_agency_cases",
+		"assign_agency_cases",
+	},
 	"default": {
 		"view_my_permissions",
 	},
