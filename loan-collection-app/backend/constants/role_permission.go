@@ -26,6 +26,7 @@ var RolePermissionsMap = map[string][]string{
 		"upload_cases",
 		"view_unassigned_cases",
 		"assign_cases",
+		"view_all_agency_users",
 	},
 	"agency_admin": {
 		"view_agency_cases",
