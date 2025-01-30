@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Drawer, 
   List, 
@@ -21,14 +21,52 @@ import { Link } from 'react-router-dom';
 
 const drawerWidth = 240;
 
+const listItems = {
+  "home": {
+    label: 'Home',
+    url: "/",
+    icon: <HomeIcon />
+  },
+  "view_my_cases": {
+    label: 'My Cases',
+    url: "/cases",
+    icon: <CaseIcon />
+  },
+  "view_users": {
+    label: 'User Management',
+    url: "/users",
+    icon: <UsersIcon />
+  },
+  "view_agencies": {
+    label: 'Agency Management',
+    url: "/agency-management",
+    icon: <BuildingIcon />
+  },
+  "view_agency_user_mapping": {
+    label: 'Agency User Mapping',
+    url: "/agency-user-mapping",
+    icon: <GroupAddIcon />
+  },
+  "assign_agency_cases": {
+    label: 'Case Onboarding',
+    url: "/case-onboarding",
+    icon: <UploadFile />
+  },
+  "view_agency_cases": {
+    label: 'Agency Cases',
+    url: "/agency-cases",
+    icon: <BuildingIcon />
+  },
+}
+
 function SideNavigation({ permissions, onLogout }) {
-  const navigationItems = [
-    {
-      path: '/agency-management',
-      icon: 'building',
-      label: 'Agency Management'
-    }
-  ];
+  const sideNavigationItems = useMemo(() => (
+    permissions.reduce((acc, permission) => {
+      const item = listItems[permission];
+      if (item) acc.push(item);
+      return acc;
+    }, [])
+  ), [permissions])
 
   return (
     <Drawer
@@ -50,52 +88,18 @@ function SideNavigation({ permissions, onLogout }) {
           Navigation
         </Typography>
         <List>
-          <ListItem button component={Link} to="/">
-            <ListItemIcon>
-              <HomeIcon />
-            </ListItemIcon>
-            <ListItemText primary="Home" />
-          </ListItem>
-          <ListItem button component={Link} to="/cases">
-            <ListItemIcon>
-              <CaseIcon />
-            </ListItemIcon>
-            <ListItemText primary="My Cases" />
-          </ListItem>
-          <ListItem button component={Link} to="/users">
-            <ListItemIcon>
-              <UsersIcon />
-            </ListItemIcon>
-            <ListItemText primary="User Management" />
-          </ListItem>
-          <ListItem button component={Link} to="/agency-management">
-            <ListItemIcon>
-              <BuildingIcon />
-            </ListItemIcon>
-            <ListItemText primary="Agency Management" />
-          </ListItem>
-          <ListItem button component={Link} to="/agency-user-mapping">
-            <ListItemIcon>
-              <GroupAddIcon />
-            </ListItemIcon>
-            <ListItemText primary="Agency User Mapping" />
-          </ListItem>
-          <ListItem button component={Link} to="/case-onboarding">
-            <ListItemIcon>
-              <UploadFile />
-            </ListItemIcon>
-            <ListItemText primary="Case Onboarding" />
-          </ListItem>
-          <ListItem button component={Link} to="/agency-cases">
-            <ListItemIcon>
-              <GroupAddIcon />
-            </ListItemIcon>
-            <ListItemText primary="Agency Cases" />
-          </ListItem>
+          {sideNavigationItems.map((item, index) => (
+            <ListItem button component={Link} to={item.url} key={index}>
+              <ListItemIcon>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItem>
+          ))}
         </List>
         <Box sx={{ marginTop: 'auto' }}>
           <List>
-            <ListItem button onClick={onLogout}>
+            <ListItem onClick={onLogout}>
               <ListItemIcon>
                 <LogoutIcon />
               </ListItemIcon>
