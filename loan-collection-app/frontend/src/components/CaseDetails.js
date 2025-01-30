@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getCaseDetails, getTrails, postTrail, getPaymentLink } from "../service/api";
 import {
@@ -9,7 +9,54 @@ import {
   TextField,
   Checkbox,
   FormControlLabel,
+  Card,
 } from "@mui/material";
+
+const caseFields = [
+  { label: "Case Status", key: "case_status", default: "N/A" },
+  { label: "Agent Name", key: "agent_name", default: "N/A" },
+  { label: "Loan ID", key: "loan_id", default: "N/A" },
+  { label: "Loan Amount", key: "loan_amount", default: 0, prefix: "₹ " },
+  { label: "Monthly EMI", key: "emi_monthly", default: 0, prefix: "₹ " },
+  { label: "Days Past Due", key: "days_past_due", default: 0 },
+  { label: "DPD", key: "dpd", default: 0 },
+  { label: "DPD Bucket", key: "dpd_bucket", default: "N/A" },
+  { 
+    label: "EMI Date", 
+    key: "emi_date", 
+    default: "N/A", 
+    format: (value) => value ? new Date(value).toLocaleDateString() : "N/A" 
+  },
+  { label: "Loan Description", key: "loan_description", default: "N/A" },
+  { label: "EMIs Paid", key: "emis_paid_till_date", default: 0 },
+  { label: "EMIs Pending", key: "emis_pending", default: 0 },
+  { label: "Bounce Charges", key: "bounce_charges", default: 0, prefix: "₹ " },
+  { label: "NACH Status", key: "nach_presentation_status", default: "N/A" },
+  { 
+    label: "Insurance Active", 
+    key: "insurance_active", 
+    default: "No", 
+    format: (value) => value ? "Yes" : "No" 
+  },
+  { 
+    label: "Disbursal Date", 
+    key: "disbursal_date", 
+    default: "N/A", 
+    format: (value) => value ? new Date(value).toLocaleDateString() : "N/A" 
+  }
+];
+
+const trailFields = [
+  { label: "Trail ID", key: "trail_id", default: "N/A" },
+  { 
+    label: "Contacted", 
+    key: "contacted", 
+    default: "No", 
+    format: (value) => value ? "Yes" : "No" 
+  },
+  { label: "Payment Date", key: "payment_date", default: "N/A" },
+  { label: "Remarks", key: "remarks", default: "N/A" }
+];
 
 function CaseDetails() {
   const { caseId } = useParams();
@@ -28,7 +75,10 @@ function CaseDetails() {
         const response = await getCaseDetails(caseId);
         setCaseInfo(response.data);
         const trailsResponse = await getTrails(caseId);
-        setTrails(trailsResponse?.data || []);
+        if (trailsResponse?.data) {
+          setTrails(trailsResponse?.data);
+        }
+        
       } catch (err) {
         setCaseInfo({});
         setTrails([]);
@@ -44,14 +94,16 @@ function CaseDetails() {
         payment_date: paymentDate,
         remarks,
       };
-      await postTrail(caseId, newTrail);
-      // Refresh trails
-      const tr = await getTrails(caseId);
-      setTrails(tr);
-      // Clear form
-      setContacted(false);
-      setPaymentDate("");
-      setRemarks("");
+      if (paymentDate && contacted.remarks) {
+        await postTrail(caseId, newTrail);
+        // Refresh trails
+        const tr = await getTrails(caseId);
+        setTrails(tr);
+        // Clear form
+        setContacted(false);
+        setPaymentDate("");
+        setRemarks("");
+      }
     } catch (err) {
       console.error(err);
     }
@@ -96,27 +148,24 @@ function CaseDetails() {
         Case #{caseInfo.case_id} Details
       </Typography>
       <Paper style={{ padding: 16, marginBottom: 16 }}>
-        <Typography variant="h6">Case Status: {caseInfo.case_status || 'N/A'}</Typography>
-        <Typography>Agent Name: {caseInfo.agent_name || 'N/A'}</Typography>
-        <Typography>Loan ID: {caseInfo.loan_id || 'N/A'}</Typography>
-        <Typography>Loan Amount: ₹ {caseInfo.loan_amount || 0}</Typography>
-        <Typography>Monthly EMI: ₹ {caseInfo.emi_monthly || 0}</Typography>
-        <Typography>Days Past Due: {caseInfo.days_past_due || 0}</Typography>
-        <Typography>DPD: {caseInfo.dpd || 0}</Typography>
-        <Typography>DPD Bucket: {caseInfo.dpd_bucket || 'N/A'}</Typography>
-        <Typography>EMI Date: {caseInfo.emi_date ? new Date(caseInfo.emi_date).toLocaleDateString() : 'N/A'}</Typography>
-        <Typography>Loan Description: {caseInfo.loan_description || 'N/A'}</Typography>
-        <Typography>EMIs Paid: {caseInfo.emis_paid_till_date || 0}</Typography>
-        <Typography>EMIs Pending: {caseInfo.emis_pending || 0}</Typography>
-        <Typography>Bounce Charges: ₹ {caseInfo.bounce_charges || 0}</Typography>
-        <Typography>NACH Status: {caseInfo.nach_presentation_status || 'N/A'}</Typography>
-        <Typography>Insurance Active: {caseInfo.insurance_active ? "Yes" : "No"}</Typography>
-        <Typography>Disbursal Date: {caseInfo.disbursal_date ? new Date(caseInfo.disbursal_date).toLocaleDateString() : 'N/A'}</Typography>
+        <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+        {caseFields.map(({ label, key, default: defaultValue, prefix = "", format }) => {
+          const value = caseInfo[key];
+          const displayValue = format ? format(value) : value ?? defaultValue;
+          return (
+            <Paper style={{ padding: '8px', cursor: 'pointer' }} key={key} >
+              <Typography key={key} variant='body1'>
+              {label}: {prefix}{displayValue}
+            </Typography>
+            </Paper>
+          );
+        })}
+        </div>
         
-        <Box mt={2}>
-          <Typography variant="h6">Customer Contact Details</Typography>
-          <Typography>Address: {caseInfo.customer_addr || 'N/A'}</Typography>
-          <Typography>Phone: {caseInfo.customer_phone || 'N/A'}</Typography>
+        <Box mt={4}>
+          <Typography variant="h6" style={{ marginBottom: 12 }}>Customer Contact Details</Typography>
+          <Paper style={{ padding: "8px", marginBottom: '8px' }}><Typography>Address: {caseInfo.customer_addr || 'N/A'}</Typography></Paper>
+          <Paper style={{ padding: "8px", marginBottom: '8px' }}><Typography>Phone: {caseInfo.customer_phone || 'N/A'}</Typography></Paper>
           {caseInfo.customer_addr && (
             <Button variant="outlined" onClick={openMap} sx={{ mt: 1 }}>
               View on Map
@@ -125,7 +174,7 @@ function CaseDetails() {
         </Box>
       </Paper>
 
-      <Box my={2}>
+      <Card style={{ padding: 16, marginBottom: 16 }}>
         <Typography variant="h5" gutterBottom>
           Log a Trail
         </Typography>
@@ -153,9 +202,9 @@ function CaseDetails() {
         <Button variant="contained" onClick={handleAddTrail}>
           Submit Trail
         </Button>
-      </Box>
+      </Card>
 
-      <Box my={2}>
+      <Card style={{ padding: 16, marginBottom: 16 }}>
         <Typography variant="h5" gutterBottom>
           Share Payment Link
         </Typography>
@@ -167,25 +216,34 @@ function CaseDetails() {
             <Typography>Payment Link: <a href={paymentLink} target="_blank" rel="noreferrer">{paymentLink}</a></Typography>
           </Box>
         )}
-      </Box>
+      </Card>
 
-      <Box my={2}>
+      <Card style={{ padding: 16, marginBottom: 16 }}>
         <Typography variant="h5" gutterBottom>
           Trail History
         </Typography>
         {trails && trails.length > 0 ? (
-          trails.map((t) => (
-            <Paper key={t.trail_id} style={{ padding: 16, marginBottom: 8 }}>
-              <Typography>Trail ID: {t.trail_id}</Typography>
-              <Typography>Contacted: {t.contacted ? "Yes" : "No"}</Typography>
-              <Typography>Payment Date: {t.payment_date || "N/A"}</Typography>
-              <Typography>Remarks: {t.remarks}</Typography>
+          trails.map((trail) => (
+            <Paper key={trail.trail_id} style={{ padding: 16, marginBottom: 8 }}>
+              <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+                {trailFields.map(({ label, key, default: defaultValue, format }) => {
+                  const value = trail[key];
+                  const displayValue = format ? format(value) : value ?? defaultValue;
+                  return (
+                    <Paper style={{ padding: "8px", marginBottom: '8px' }}>
+                      <Typography key={key}>
+                        {label}: {displayValue}
+                      </Typography>
+                    </Paper>
+                  );
+                })}
+              </div>
             </Paper>
           ))
         ) : (
           <Typography color="textSecondary">No trails recorded yet.</Typography>
         )}
-      </Box>
+      </Card>
     </Box>
   );
 }
