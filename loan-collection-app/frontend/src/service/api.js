@@ -21,6 +21,7 @@ instance.interceptors.request.use(
   }
 );
 
+
 export default instance;
 // Add token to headers for all requests
 instance.interceptors.request.use((config) => {
